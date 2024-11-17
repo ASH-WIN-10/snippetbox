@@ -9,15 +9,15 @@ import (
 	"github.com/ASH-WIN-10/snippetbox/internal/models"
 )
 
-type templateData struct {
+type TemplateData struct {
 	CurrentYear int
 	Snippet     models.Snippet
 	Snippets    []models.Snippet
 	Form        any
 }
 
-func (app *application) newTemplateData(r *http.Request) templateData {
-	return templateData{
+func (app *application) newTemplateData(r *http.Request) TemplateData {
+	return TemplateData{
 		CurrentYear: time.Now().Year(),
 	}
 }

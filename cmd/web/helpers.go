@@ -25,7 +25,7 @@ func (app *application) render(
 	r *http.Request,
 	status int,
 	page string,
-	data templateData,
+	data TemplateData,
 ) {
 	ts, ok := app.templateCache[page]
 	if !ok {
