@@ -111,6 +111,7 @@ func (app *application) userSignup(w http.ResponseWriter, r *http.Request) {
 func (app *application) userSignupPost(w http.ResponseWriter, r *http.Request) {
 	var form UserSignupForm
 	err := app.decodePostForm(r, form)
+	err := app.decodePostForm(r, &form)
 	if err != nil {
 		app.clientError(w, http.StatusBadRequest)
 		return
@@ -126,6 +127,7 @@ func (app *application) userSignupPost(w http.ResponseWriter, r *http.Request) {
 		data := app.newTemplateData(r)
 		data.Form = form
 		app.render(w, r, http.StatusUnprocessableEntity, "signup.tmpl", data)
+		app.render(w, r, http.StatusUnprocessableEntity, "signup.tmpl.html", data)
 		return
 	}
 
