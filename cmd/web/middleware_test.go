@@ -1,57 +1,40 @@
 package main
 
 import (
-	"bytes"
-	"io"
 	"net/http"
-	"net/http/httptest"
 	"testing"
 
 	"github.com/ASH-WIN-10/snippetbox/internal/assert"
 )
 
 func TestCommonHeaders(t *testing.T) {
-	rr := httptest.NewRecorder()
-
-	r, err := http.NewRequest(http.MethodGet, "/", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-
 	next := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("OK"))
 	})
 
-	commonHeaders(next).ServeHTTP(rr, r)
+	ts := newTestServer(t, commonHeaders(next))
+	defer ts.Close()
 
-	rs := rr.Result()
+	statusCode, headers, body := ts.get(t, "/")
 
 	expectedValue := "default-src 'self'; style-src 'self' fonts.googleapis.com; font-src fonts.gstatic.com"
-	assert.Equal(t, rs.Header.Get("Content-Security-Policy"), expectedValue)
+	assert.Equal(t, headers.Get("Content-Security-Policy"), expectedValue)
 
 	expectedValue = "origin-when-cross-origin"
-	assert.Equal(t, rs.Header.Get("Referrer-Policy"), expectedValue)
+	assert.Equal(t, headers.Get("Referrer-Policy"), expectedValue)
 
 	expectedValue = "nosniff"
-	assert.Equal(t, rs.Header.Get("X-Content-Type-Options"), expectedValue)
+	assert.Equal(t, headers.Get("X-Content-Type-Options"), expectedValue)
 
 	expectedValue = "deny"
-	assert.Equal(t, rs.Header.Get("X-Frame-Options"), expectedValue)
+	assert.Equal(t, headers.Get("X-Frame-Options"), expectedValue)
 
 	expectedValue = "0"
-	assert.Equal(t, rs.Header.Get("X-XSS-Protection"), expectedValue)
+	assert.Equal(t, headers.Get("X-XSS-Protection"), expectedValue)
 
 	expectedValue = "Go"
-	assert.Equal(t, rs.Header.Get("Server"), expectedValue)
+	assert.Equal(t, headers.Get("Server"), expectedValue)
 
-	assert.Equal(t, rs.StatusCode, http.StatusOK)
-
-	defer rs.Body.Close()
-	body, err := io.ReadAll(rs.Body)
-	if err != nil {
-		t.Fatal(err)
-	}
-	body = bytes.TrimSpace(body)
-
+	assert.Equal(t, statusCode, http.StatusOK)
 	assert.Equal(t, string(body), "OK")
 }
